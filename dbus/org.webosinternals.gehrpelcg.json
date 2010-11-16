@@ -1,0 +1,14 @@
+{
+  "role": {
+     "exeName":"/var/usr/sbin/org.webosinternals.gehrpelcg",
+     "type": "regular",
+     "allowedNames": ["org.webosinternals.gehrpelcg"]
+  },
+  "permissions": [
+    {
+      "service":"org.webosinternals.gehrpelcg",
+      "inbound":["*"],
+      "outbound":["*"]
+    }
+  ]
+}
