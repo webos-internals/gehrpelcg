@@ -13,6 +13,10 @@
  * 
  * 		folder: '/media/internal/',	// initial folder location, notice the trailing slash!
  * 
+ * 		extensions: ['jpg','png'],	// (file type only) array of extensions to list (lowercase extensions only)
+ * 									// ['ext'] for single extension
+ * 									// [] for all extensions (DEFAULT)
+ * 
  * 		pop: false,					// make truthy if you want the filePicker to pop its own stage for selecting,
  * 									   but it will do it automatically if no card is currently active, defaults to false
  * 
@@ -35,9 +39,8 @@ function filePicker(params)
 	this.onSelect =				params.onSelect;
 
 	this.pop =					(params.pop ? params.pop : false);
-	
-	this.folder =				(params.folder ? params.folder : false);
-		
+	this.folder =				(params.folder ? params.folder : this.topLevel);
+	this.extensions =			(params.extensions ? params.extensions : []);
 	this.sceneTitle =			(params.sceneTitle ? params.sceneTitle : false);
 	
 	this.stageName =			'filePicker-' + this.num;
@@ -49,36 +52,25 @@ function filePicker(params)
 	this.openFilePicker();
 }
 
-filePicker.prototype.listDirectory = function(dir)
+filePicker.prototype.getDirectory = function(dir, callback)
 {
-	var json = JSON.parse(plugin.list_directory(dir));
-	if (json && json.dir)
-		return json.dir;
-	else
-		return [];
+	service.getDirListing(this.parseDirectory.bindAsEventListener(this, dir, callback), dir);
 }
-filePicker.prototype.statFile = function(file)
+filePicker.prototype.parseDirectory = function(payload, dir, callback)
 {
-	return JSON.parse(plugin.stat_file(file));
-}
-filePicker.prototype.getDirectory = function(dir)
-{
-	// this function takes how the plugin works and makes it sane
 	var returnArray = [];
-	var d = this.listDirectory(dir);
-	if (d.length > 0)
+	if (payload.contents.length > 0)
 	{
-		for (var f = 0; f < d.length; f++)
+		for (var c = 0; c < payload.contents.length; c++)
 		{
-			if (!d[f].match(folderRegExp))
+			if (!payload.contents[c].name.match(filePicker.folderRegExp)
+			&& ((this.validExtension(payload.contents[c].name) && payload.contents[c].type == 'file') || payload.contents[c].type != 'file'))
 			{
-				var file = this.statFile(dir + d[f]);
-				if (file && file.st_size)
-				{
-					file.name = d[f];
-					file.location = dir + d[f];
-					returnArray.push(file);
-				}
+				returnArray.push({
+					name: payload.contents[c].name,
+					type: payload.contents[c].type,
+					location: dir + payload.contents[c].name
+				});
 			}
 		}
 	}
@@ -98,22 +90,12 @@ filePicker.prototype.getDirectory = function(dir)
 			}
 		});
 	}
-	return returnArray;
+	callback(returnArray);
 }
 filePicker.prototype.getDirectories = function(dir)
 {
+	// this for folderpicker...
 	var returnArray = [];
-	var d = this.getDirectory(dir);
-	if (d.length > 0)
-	{
-		for (var f = 0; f < d.length; f++)
-		{
-			if (!d[f].name.match(folderRegExp) && d[f].st_size == 32768)
-			{
-				returnArray.push(d[f]);
-			}
-		}
-	}
 	return returnArray;
 }
 
@@ -124,6 +106,27 @@ filePicker.prototype.ok = function(value)
 filePicker.prototype.cancel = function()
 {
 	this.onSelect(false);
+}
+
+filePicker.prototype.validExtension = function(name)
+{
+	if (this.extensions.length > 0)
+	{
+		var match = filePicker.extensionRegExp.exec(name);
+		if (match && match.length > 1)
+		{
+			if (this.extensions.include(match[1].toLowerCase()))
+			{
+				return true;
+			}
+		}
+	}
+	else
+	{
+		return true;
+	}
+	// eh?
+	return false;
 }
 
 
@@ -196,3 +199,15 @@ filePicker.parseFileStringForId = function(p)
 {
 	return p.toLowerCase().replace(/\//g, '-').replace(/ /g, '-').replace(/\./g, '-');
 }
+filePicker.getFileName = function(p)
+{
+	var match = filePicker.fileRegExp.exec(p);
+	if (match && match.length > 1)
+	{
+		return match[2];
+	}
+	return p;
+}
+filePicker.folderRegExp = new RegExp(/^\./);
+filePicker.fileRegExp = new RegExp('^(.+)/([^/]+)$');
+filePicker.extensionRegExp = new RegExp(/\.([^\.]+)$/);

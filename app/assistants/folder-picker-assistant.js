@@ -8,7 +8,6 @@ function FolderPickerAssistant(picker)
 		visible: true,
 		items:
 		[
-			Mojo.Menu.editItem,
 			{
 				label: "Preferences",
 				command: 'do-prefs'
@@ -211,7 +210,7 @@ FolderPickerAssistant.prototype.handleCommand = function(event)
 				break;
 				
 			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences-general');
+				this.controller.stageController.pushScene('preferences');
 				break;
 				
 			case 'ok':

@@ -3,7 +3,16 @@
     {"source": "app/models/utility.js"},
     {"source": "app/models/help.js"},
     {"source": "app/models/cookies.js"},
+    {"source": "app/models/filePicker.js"},
     {"source": "app/assistants/app-assistant.js"},
+    {
+        "scenes": "file-picker",
+        "source": "app/assistants/file-picker-assistant.js"
+    },
+    {
+        "scenes": "folder-picker",
+        "source": "app/assistants/folder-picker-assistant.js"
+    },
     {
         "scenes": "startup",
         "source": "app/assistants/startup-assistant.js"
@@ -23,5 +32,9 @@
     {
         "scenes": "help-data",
         "source": "app/assistants/help-data-assistant.js"
+    },
+    {
+        "scenes": "mount",
+        "source": "app/assistants/mount-assistant.js"
     }
 ]

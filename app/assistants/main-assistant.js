@@ -9,6 +9,19 @@ function MainAssistant()
 	// setup list model
 	this.mainModel = {items:[]};
 	
+	this.cmdMenuModel = 
+	{
+		items:
+		[
+			{},
+			{
+				label: $L('New Mount'),
+				icon: 'new',
+				command: 'new-mount'
+			}
+		]
+	}
+	
 	// setup menu
 	this.menuModel =
 	{
@@ -47,6 +60,8 @@ MainAssistant.prototype.setup = function()
 	
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
+	
+	this.controller.setupWidget(Mojo.Menu.commandMenu, { menuClass: 'no-fade' }, this.cmdMenuModel);
 	
 };
 
@@ -103,6 +118,10 @@ MainAssistant.prototype.handleCommand = function(event)
 	{
 		switch (event.command)
 		{
+			case 'new-mount':
+				this.controller.stageController.pushScene('mount');
+				break;
+				
 			case 'do-prefs':
 				this.controller.stageController.pushScene('preferences');
 				break;
